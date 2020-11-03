@@ -451,8 +451,8 @@ def addressways(waylist, nodelist, first_id):
                             elif ltofromint and (lfromint % 2) == 0 and (ltoint % 2) == 0:
                                 interpolationtype = "odd";
 
-                    ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
-                                ( ",".join(rlinestring), sql_quote(rfromadd), sql_quote(rtoadd), sql_quote(interpolationtype), sql_quote(name), sql_quote(county), sql_quote(zipr) ) )
+                        ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
+                                    ( ",".join(rlinestring), sql_quote(rfromadd), sql_quote(rtoadd), sql_quote(interpolationtype), sql_quote(name), sql_quote(county), sql_quote(zipr) ) )
 
                 if left:
                     id += 1
@@ -470,8 +470,8 @@ def addressways(waylist, nodelist, first_id):
                             elif rtofromint and (rfromint %2 ) == 0 and (rtoint % 2) == 0:
                                 interpolationtype = "odd";
 
-                    ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
-                                ( ",".join(llinestring), sql_quote(lfromadd), sql_quote(ltoadd), sql_quote(interpolationtype), sql_quote(name), sql_quote(county), sql_quote(zipl) ) )
+                        ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
+                                    ( ",".join(llinestring), sql_quote(lfromadd), sql_quote(ltoadd), sql_quote(interpolationtype), sql_quote(name), sql_quote(county), sql_quote(zipl) ) )
 
     return ret
 
