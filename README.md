@@ -11,6 +11,7 @@ Replace '2019' with the current year throughout.
 
         # Ubuntu:
         sudo apt-get install python3-gdal unzip
+        pip3 install ogr
 
   2. Get the TIGER 2019 data. You will need the EDGES files
      (3,233 zip files, 11GB total).
