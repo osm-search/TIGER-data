@@ -480,7 +480,7 @@ def sql_quote( string ):
 
 def unproject( point ):
     pt = tr.TransformPoint( point[0], point[1] )
-    return (pt[1], pt[0])
+    return (pt[0], pt[1])
 
 def round_point( point, accuracy=8 ):
     return tuple( [ round(x,accuracy) for x in point ] )
