@@ -28,7 +28,7 @@ for F in ${INFILES[*]}; do
     if [[ "$F" =~ $INREGEX ]]; then
         COUNTYID=${BASH_REMATCH[1]}
         SHAPEFILE="$WORKPATH/$(basename $F '.zip').shp"
-        SQLFILE="$OUTPATH/$COUNTYID.sql"
+        CSVFILE="$OUTPATH/$COUNTYID.csv"
 
         unzip -o -q -d "$WORKPATH" "$F"
         if [[ ! -e "$SHAPEFILE" ]]; then
@@ -36,13 +36,13 @@ for F in ${INFILES[*]}; do
             exit 1
         fi
 
-        ./tiger_address_convert.py "$SHAPEFILE" "$SQLFILE"
+        ./tiger_address_convert.py "$SHAPEFILE" "$CSVFILE"
 
         rm $WORKPATH/*
     fi
 done
 
-OUTFILES=($OUTPATH/*.sql)
+OUTFILES=($OUTPATH/*.csv)
 echo "Wrote ${#OUTFILES[*]} files."
 
 rmdir $WORKPATH

@@ -27,7 +27,7 @@ address_distance = 30
 # Sets the distance that the ends of the address ways should be pulled back from the ends of the main way, in feet
 address_pullback = 45
 
-import sys, os.path, json
+import sys, os.path, json, re, csv
 try:
     from osgeo import ogr
     from osgeo import osr
@@ -242,7 +242,7 @@ def addressways(waylist, nodelist, first_id):
     id = first_id
     lat_feet = 364613  #The approximate number of feet in one degree of latitude
     distance = float(address_distance)
-    ret = []
+    csv_lines = []
 
     for waykey, segments in waylist.items():
         waykey = dict(waykey)
@@ -381,6 +381,7 @@ def addressways(waylist, nodelist, first_id):
                 zipl = ''
                 name = ''
                 county = ''
+                state = ''
                 if "tiger:zip_right" in waykey:
                     zipr = waykey["tiger:zip_right"]
                 if "tiger:zip_left" in waykey:
@@ -388,7 +389,9 @@ def addressways(waylist, nodelist, first_id):
                 if "name" in waykey:
                     name = waykey["name"]
                 if "tiger:county" in waykey:
-                    county = waykey["tiger:county"]
+                    result = re.match('^(.+), ([A-Z][A-Z])', waykey["tiger:county"]) # e.g. 'Perquimans, NC'
+                    county = result[1]
+                    state = result[2]
 
 #Write the nodes of the offset ways
                 if right:
@@ -435,9 +438,16 @@ def addressways(waylist, nodelist, first_id):
                             if ltofromint and (lfromint % 2) == 0 and (ltoint % 2) == 0:
                                 interpolationtype = "odd";
 
-                        ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
-                                    ( ",".join(rlinestring), sql_quote(rfromadd), sql_quote(rtoadd), sql_quote(interpolationtype), sql_quote(name), sql_quote(county), sql_quote(zipr) ) )
-
+                        csv_lines.append({
+                            'from': int(rfromadd),
+                            'to': int(rtoadd),
+                            'interpolation': interpolationtype,
+                            'street': name,
+                            'city': county,
+                            'state': state,
+                            'postcode': zipr,
+                            'geometry': 'LINESTRING(' + ','.join(rlinestring) + ')'
+                        });
                 if left:
                     id += 1
 
@@ -450,13 +460,18 @@ def addressways(waylist, nodelist, first_id):
                             if rtofromint and (rfromint %2 ) == 0 and (rtoint % 2) == 0:
                                 interpolationtype = "odd";
 
-                        ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
-                                    ( ",".join(llinestring), sql_quote(lfromadd), sql_quote(ltoadd), sql_quote(interpolationtype), sql_quote(name), sql_quote(county), sql_quote(zipl) ) )
+                        csv_lines.append({
+                            'from': int(lfromadd),
+                            'to': int(ltoadd),
+                            'interpolation': interpolationtype,
+                            'street': name,
+                            'city': county,
+                            'state': state,
+                            'postcode': zipl,
+                            'geometry': 'LINESTRING(' + ','.join(llinestring) + ')'
+                        });
 
-    return ret
-
-def sql_quote( string ):
-    return "'" + string.replace("'", "''") + "'"
+    return csv_lines
 
 def unproject( point ):
     pt = tr.TransformPoint( point[0], point[1] )
@@ -571,7 +586,7 @@ def compile_waylist( parsed_gisdata ):
     return ret
             
 
-def shape_to_sql( shp_filename, sql_filename ):
+def shape_to_csv( shp_filename, csv_filename ):
     
     print("parsing shpfile %s" % shp_filename)
     parsed_features = parse_shp_for_geom_and_tags( shp_filename )
@@ -583,18 +598,20 @@ def shape_to_sql( shp_filename, sql_filename ):
     waylist = compile_waylist( parsed_features )
 
     print("preparing address ways")
-    sql_lines = addressways(waylist, nodelist, i)
+    csv_lines = addressways(waylist, nodelist, i)
 
-    print("writing %s" % sql_filename)
-    fp = open( sql_filename, "w" )
-    fp.write( "\n".join( sql_lines ) )
-    fp.close()
+    print("writing %s" % csv_filename)
+    fieldnames = ['from', 'to', 'interpolation', 'street', 'city', 'state', 'postcode', 'geometry']
+    with open(csv_filename, 'w') as f:
+        csv_writer = csv.DictWriter(f, delimiter=';', fieldnames=fieldnames)
+        csv_writer.writeheader()
+        csv_writer.writerows(csv_lines)
     
 if __name__ == '__main__':
     import sys, os.path
     if len(sys.argv) < 3:
-        print("%s input.shp output.sql" % sys.argv[0])
+        print("%s input.shp output.csv" % sys.argv[0])
         sys.exit()
     shp_filename = sys.argv[1]
-    sql_filename = sys.argv[2]
-    shape_to_sql(shp_filename, sql_filename)
+    csv_filename = sys.argv[2]
+    shape_to_csv(shp_filename, csv_filename)
