@@ -151,14 +151,6 @@ def parse_shp_for_geom_and_tags( filename ):
                 if tags["highway"] != "primary":
                     tags["highway"] = "secondary"
 
-        # TIGER 2017 no longer contains this field
-        if 'DIVROAD' in fieldNameList:
-            divroad = poFeature.GetField("DIVROAD")
-            if divroad != None:
-                if divroad == "Y" and "highway" in tags and tags["highway"] == "residential":
-                    tags["highway"] = "tertiary"
-                tags["tiger:separated"] = divroad
-
         statefp = poFeature.GetField("STATEFP")
         countyfp = poFeature.GetField("COUNTYFP")
         if (statefp != None) and (countyfp != None):
@@ -397,10 +389,6 @@ def addressways(waylist, nodelist, first_id):
                     name = waykey["name"]
                 if "tiger:county" in waykey:
                     county = waykey["tiger:county"]
-                if "tiger:separated" in waykey: # No longer set in Tiger-2017
-                    separated = waykey["tiger:separated"]
-                else:
-                    separated = "N"
 
 #Write the nodes of the offset ways
                 if right:
@@ -441,14 +429,10 @@ def addressways(waylist, nodelist, first_id):
                     interpolationtype = "all";
                     if rtofromint:
                         if (rfromint % 2) == 0 and (rtoint % 2) == 0:
-                            if separated == "Y":        #Doesn't matter if there is another side
-                                interpolationtype = "even";
-                            elif ltofromint and (lfromint % 2) == 1 and (ltoint % 2) == 1:
+                            if ltofromint and (lfromint % 2) == 1 and (ltoint % 2) == 1:
                                 interpolationtype = "even";
                         elif (rfromint % 2) == 1 and (rtoint % 2) == 1:
-                            if separated == "Y":        #Doesn't matter if there is another side
-                                interpolationtype = "odd";
-                            elif ltofromint and (lfromint % 2) == 0 and (ltoint % 2) == 0:
+                            if ltofromint and (lfromint % 2) == 0 and (ltoint % 2) == 0:
                                 interpolationtype = "odd";
 
                         ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
@@ -460,14 +444,10 @@ def addressways(waylist, nodelist, first_id):
                     interpolationtype = "all";
                     if ltofromint:
                         if (lfromint % 2) == 0 and (ltoint % 2) == 0:
-                            if separated == "Y":
-                                interpolationtype = "even";
-                            elif rtofromint and (rfromint % 2) == 1 and (rtoint % 2) == 1:
+                            if rtofromint and (rfromint % 2) == 1 and (rtoint % 2) == 1:
                                 interpolationtype = "even";
                         elif (lfromint % 2) == 1 and (ltoint % 2) == 1:
-                            if separated == "Y":
-                                interpolationtype = "odd";
-                            elif rtofromint and (rfromint %2 ) == 0 and (rtoint % 2) == 0:
+                            if rtofromint and (rfromint %2 ) == 0 and (rtoint % 2) == 0:
                                 interpolationtype = "odd";
 
                         ret.append( "SELECT tiger_line_import(ST_GeomFromText('LINESTRING(%s)',4326), %s, %s, %s, %s, %s, %s);" %
