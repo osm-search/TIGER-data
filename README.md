@@ -14,7 +14,7 @@ Replace '2020' with the current year throughout.
 
         # Ubuntu:
         sudo apt-get install python3-gdal python3-pip unzip
-        pip3 install ogr
+        pip3 install -r requirements.txt
 
   2. Get the TIGER 2020 data. You will need the EDGES files
      (3,234 zip files, 11GB total).
