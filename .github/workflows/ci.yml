@@ -1,0 +1,27 @@
+name: "Continuous Integration"
+
+on: [ push, pull_request ]
+
+jobs:
+  compare-output:
+
+    name: Compare output
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      
+      - name: Install Ubuntu dependencies
+        run: sudo apt-get install -y -qq --no-install-recommends python3-gdal python3-pip unzip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Create output
+        run: |
+          mkdir output
+          ./convert.sh tests/fixtures/ output/
+          diff output/37143.csv tests/fixtures/expected_37143.csv
