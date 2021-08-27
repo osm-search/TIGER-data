@@ -4,7 +4,7 @@ Deal with coordinate system transformations/projections
 
 try:
     from osgeo import osr
-except:
+except ImportError:
     import osr
 
 # Same as the contents of the *_edges.prj files
