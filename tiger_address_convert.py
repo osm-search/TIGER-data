@@ -38,8 +38,8 @@ def addressways(waylist, nodelist, first_id):
     distance = float(ADDRESS_DISTANCE)
     csv_lines = []
 
-    for waykey, segments in waylist.items():
-        waykey = dict(waykey)
+    for tags, segments in waylist.items():
+        tags = dict(tags)
         for segment in segments:
             lsegment = []
             rsegment = []
@@ -51,27 +51,16 @@ def addressways(waylist, nodelist, first_id):
                 pullback = seglength / 3.0
             else:
                 pullback = float(ADDRESS_PULLBACK)
-            if "tiger:lfromadd" in waykey:
-                lfromadd = waykey["tiger:lfromadd"]
-            else:
-                lfromadd = None
-            if "tiger:ltoadd" in waykey:
-                ltoadd = waykey["tiger:ltoadd"]
-            else:
-                ltoadd = None
-            if "tiger:rfromadd" in waykey:
-                rfromadd = waykey["tiger:rfromadd"]
-            else:
-                rfromadd = None
-            if "tiger:rtoadd" in waykey:
-                rtoadd = waykey["tiger:rtoadd"]
-            else:
-                rtoadd = None
+
+            lfromadd = tags.get("tiger:lfromadd")
+            ltoadd = tags.get("tiger:ltoadd")
+            rfromadd = tags.get("tiger:rfromadd")
+            rtoadd = tags.get("tiger:rtoadd")
 
             right = check_if_integers([rfromadd, rtoadd])
             left = check_if_integers([lfromadd, ltoadd])
 
-            if left == False and right == False:
+            if not left and not right:
                 continue
 
             first = True
@@ -167,29 +156,20 @@ def addressways(waylist, nodelist, first_id):
                 id += 1
 
             # Generate the tags for ways and nodes
-            zipr = ''
-            zipl = ''
-            name = ''
-            county = ''
-            state = ''
-            if "tiger:zip_right" in waykey:
-                zipr = waykey["tiger:zip_right"]
-            if "tiger:zip_left" in waykey:
-                zipl = waykey["tiger:zip_left"]
-            if "name" in waykey:
-                name = waykey["name"]
-            if "tiger:county" in waykey:
-                result = re.match('^(.+), ([A-Z][A-Z])', waykey["tiger:county"]) # e.g. 'Perquimans, NC'
-                county = result[1]
-                state = result[2]
+            zipr = tags.get("tiger:zip_right", '')
+            zipl = tags.get("tiger:zip_left", '')
+            name = tags.get("name", '')
+            result = re.match('^(.+), ([A-Z][A-Z])', tags.get("tiger:county", ",")) # e.g. 'Perquimans, NC'
+            county = result[1]
+            state = result[2]
 
             # Write the nodes of the offset ways
             if right:
                 interpolationtype = interpolation_type(rfromadd, rtoadd, lfromadd, ltoadd)
 
                 csv_lines.append({
-                    'from': int(rfromadd),
-                    'to': int(rtoadd),
+                    'from': rfromadd,
+                    'to': rtoadd,
                     'interpolation': interpolationtype,
                     'street': name,
                     'city': county,
@@ -202,8 +182,8 @@ def addressways(waylist, nodelist, first_id):
                 interpolationtype = interpolation_type(lfromadd, ltoadd, rfromadd, rtoadd)
 
                 csv_lines.append({
-                    'from': int(lfromadd),
-                    'to': int(ltoadd),
+                    'from': lfromadd,
+                    'to': ltoadd,
                     'interpolation': interpolationtype,
                     'street': name,
                     'city': county,
