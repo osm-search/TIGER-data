@@ -15,13 +15,9 @@ import re
 import csv
 import math
 
-try:
-    from osgeo import osr
-except:
-    import osr
-
 from lib.parse import parse_shp_for_geom_and_tags
-from lib.helpers import round_point, glom_all, length
+from lib.project import unproject
+from lib.helpers import round_point, glom_all, length, interpolation_type, create_wkt_linestring
 
 
 # Sets the distance that the address ways should be from the main way, in feet.
@@ -35,26 +31,6 @@ ADDRESS_PULLBACK = 45
 
 
 
-# ====================================
-# to do read .prj file for this data
-# Change the PROJCS_WKT to match your datas prj file.
-# ====================================
-PROJCS_WKT = \
-"""GEOGCS["GCS_North_American_1983",
-        DATUM["D_North_American_1983",
-        SPHEROID["GRS_1980",6378137,298.257222101]],
-        PRIMEM["Greenwich",0],
-        UNIT["Degree",0.017453292519943295]]"""
-
-from_proj = osr.SpatialReference()
-from_proj.ImportFromWkt( PROJCS_WKT )
-
-# output to WGS84
-to_proj = osr.SpatialReference()
-to_proj.SetWellKnownGeogCS( "EPSG:4326" )
-
-tr = osr.CoordinateTransformation( from_proj, to_proj )
-
 
 def addressways(waylist, nodelist, first_id):
     id = first_id
@@ -64,8 +40,6 @@ def addressways(waylist, nodelist, first_id):
 
     for waykey, segments in waylist.items():
         waykey = dict(waykey)
-        rsegments = []
-        lsegments = []
         for segment in segments:
             lsegment = []
             rsegment = []
@@ -192,7 +166,7 @@ def addressways(waylist, nodelist, first_id):
                 rsegment.append( (id, rpoint) )
                 id += 1
 
-            #Generate the tags for ways and nodes
+            # Generate the tags for ways and nodes
             zipr = ''
             zipl = ''
             name = ''
@@ -209,51 +183,11 @@ def addressways(waylist, nodelist, first_id):
                 county = result[1]
                 state = result[2]
 
-            #Write the nodes of the offset ways
+            # Write the nodes of the offset ways
             if right:
-                rlinestring = []
-                for _i, point in rsegment:
-                    rlinestring.append( "%f %f" % (point[1], point[0]) )
-            if left:
-                llinestring = []
-                for _i, point in lsegment:
-                    llinestring.append( "%f %f" % (point[1], point[0]) )
-            if right:
-                rsegments.append( rsegment )
-            if left:
-                lsegments.append( lsegment )
-            rtofromint = right        #Do the addresses convert to integers?
-            ltofromint = left        #Do the addresses convert to integers?
-            if right:
-                try: rfromint = int(rfromadd)
-                except:
-                    print("Non integer address: %s" % rfromadd)
-                    rtofromint = False
-                try: rtoint = int(rtoadd)
-                except:
-                    print("Non integer address: %s" % rtoadd)
-                    rtofromint = False
-            if left:
-                try: lfromint = int(lfromadd)
-                except:
-                    print("Non integer address: %s" % lfromadd)
-                    ltofromint = False
-                try: ltoint = int(ltoadd)
-                except:
-                    print("Non integer address: %s" % ltoadd)
-                    ltofromint = False
-            if right:
-                id += 1
+                interpolationtype = interpolation_type(rfromadd, rtoadd, lfromadd, ltoadd)
 
-                interpolationtype = "all"
-                if rtofromint:
-                    if (rfromint % 2) == 0 and (rtoint % 2) == 0:
-                        if ltofromint and (lfromint % 2) == 1 and (ltoint % 2) == 1:
-                            interpolationtype = "even"
-                    elif (rfromint % 2) == 1 and (rtoint % 2) == 1:
-                        if ltofromint and (lfromint % 2) == 0 and (ltoint % 2) == 0:
-                            interpolationtype = "odd"
-
+                if interpolationtype is not None:
                     csv_lines.append({
                         'from': int(rfromadd),
                         'to': int(rtoadd),
@@ -262,20 +196,13 @@ def addressways(waylist, nodelist, first_id):
                         'city': county,
                         'state': state,
                         'postcode': zipr,
-                        'geometry': 'LINESTRING(' + ','.join(rlinestring) + ')'
+                        'geometry': create_wkt_linestring(rsegment)
                     })
+
             if left:
-                id += 1
+                interpolationtype = interpolation_type(lfromadd, ltoadd, rfromadd, rtoadd)
 
-                interpolationtype = "all"
-                if ltofromint:
-                    if (lfromint % 2) == 0 and (ltoint % 2) == 0:
-                        if rtofromint and (rfromint % 2) == 1 and (rtoint % 2) == 1:
-                            interpolationtype = "even"
-                    elif (lfromint % 2) == 1 and (ltoint % 2) == 1:
-                        if rtofromint and (rfromint %2 ) == 0 and (rtoint % 2) == 0:
-                            interpolationtype = "odd"
-
+                if interpolationtype is not None:
                     csv_lines.append({
                         'from': int(lfromadd),
                         'to': int(ltoadd),
@@ -284,21 +211,17 @@ def addressways(waylist, nodelist, first_id):
                         'city': county,
                         'state': state,
                         'postcode': zipl,
-                        'geometry': 'LINESTRING(' + ','.join(llinestring) + ')'
+                        'geometry': create_wkt_linestring(lsegment)
                     })
 
     return csv_lines
-
-def unproject( point ):
-    pt = tr.TransformPoint( point[0], point[1] )
-    return (pt[0], pt[1])
 
 def compile_nodelist( parsed_gisdata, first_id=1 ):
     nodelist = {}
 
     i = first_id
     for geom, _tags in parsed_gisdata:
-        if len( geom )==0:
+        if len(geom) == 0:
             continue
 
         for point in geom:
@@ -311,11 +234,10 @@ def compile_nodelist( parsed_gisdata, first_id=1 ):
 
 
 
-
 def compile_waylist( parsed_gisdata ):
     waylist = {}
 
-    #Group by tiger:way_id
+    # Group by tiger:way_id
     for geom, tags in parsed_gisdata:
         way_key = tags.copy()
         way_key = ( way_key['tiger:way_id'], tuple( [(k,v) for k,v in way_key.items()] ) )

@@ -109,3 +109,36 @@ def length(segment, nodelist):
             distance += math.sqrt(((lat - previous[0])*lat_feet)**2 + ((lon - previous[1])*lon_feet)**2)
         previous = (lat, lon)
     return distance
+
+
+def check_if_integers(numbers):
+    for number in numbers:
+        if not number:
+            return False
+        try: int(number)
+        except:
+            print("Non integer address: %s" % number)
+            return False
+
+    return True
+
+def interpolation_type(this_from, this_to, other_from, other_to):
+    if not check_if_integers([this_from, this_to]):
+        return
+
+    if check_if_integers([other_from, other_to]):
+        if (int(this_from) % 2) == 0 and (int(this_to) % 2) == 0:
+            if (int(other_from) % 2) == 1 and (int(other_to) % 2) == 1:
+                return "even"
+
+        elif (int(this_from) % 2) == 1 and (int(this_to) % 2) == 1:
+            if (int(other_from) % 2) == 0 and (int(other_to) % 2) == 0:
+                return "odd"
+
+    return "all"
+
+def create_wkt_linestring(segment):
+    coord_pairs = []
+    for _i, point in segment:
+        coord_pairs.append( "%f %f" % (point[1], point[0]) )
+    return 'LINESTRING(' + ','.join(coord_pairs) + ')'
