@@ -159,9 +159,8 @@ def addressways(waylist, nodelist, first_id):
             zipr = tags.get("tiger:zip_right", '')
             zipl = tags.get("tiger:zip_left", '')
             name = tags.get("name", '')
-            result = re.match('^(.+), ([A-Z][A-Z])', tags.get("tiger:county", ",")) # e.g. 'Perquimans, NC'
-            county = result[1]
-            state = result[2]
+            county = tags.get("tiger:county", '')
+            state = tags.get("tiger:state", '')
 
             # Write the nodes of the offset ways
             if right:

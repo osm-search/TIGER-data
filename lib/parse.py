@@ -4,6 +4,7 @@ Parse ESRI Shapefile and extract geometries and tags (key-value pairs)
 
 import os.path
 import json
+import re
 
 try:
     from osgeo import ogr
@@ -67,9 +68,12 @@ def get_tags_from_feature(po_feature):
     statefp = po_feature.GetField("STATEFP")
     countyfp = po_feature.GetField("COUNTYFP")
     if (statefp is not None) and (countyfp is not None):
-        county_name = county_fips_data.get(statefp + '' + countyfp)
-        if county_name:
-            tags["tiger:county"] = county_name
+        county_and_state = county_fips_data.get(statefp + '' + countyfp)
+        if county_and_state: # e.g. 'Perquimans, NC'
+
+            result = re.match('^(.+), ([A-Z][A-Z])', county_and_state) 
+            tags["tiger:county"] = result[1]
+            tags["tiger:state"] = result[2]
 
     lfromadd = po_feature.GetField("LFROMADD")
     if lfromadd is not None:

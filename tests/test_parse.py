@@ -38,7 +38,8 @@ def test_parse_shp_for_geom_and_tags():
         {
             'tiger:way_id': 18401089,
             'name': 'Hickory Cross Rd',
-            'tiger:county': 'Perquimans, NC',
+            'tiger:county': 'Perquimans',
+            'tiger:state': 'NC',
             'tiger:lfromadd': '388',
             'tiger:rfromadd': '389',
             'tiger:ltoadd': '100',
