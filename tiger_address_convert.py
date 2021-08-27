@@ -17,7 +17,7 @@ import math
 
 from lib.parse import parse_shp_for_geom_and_tags
 from lib.project import unproject
-from lib.helpers import round_point, glom_all, length, interpolation_type, create_wkt_linestring
+from lib.helpers import round_point, glom_all, length, check_if_integers, interpolation_type, create_wkt_linestring
 
 
 # Sets the distance that the address ways should be from the main way, in feet.
@@ -68,8 +68,8 @@ def addressways(waylist, nodelist, first_id):
             else:
                 rtoadd = None
 
-            right = rfromadd is not None and rtoadd is not None
-            left = lfromadd is not None and ltoadd is not None
+            right = check_if_integers([rfromadd, rtoadd])
+            left = check_if_integers([lfromadd, ltoadd])
 
             if left == False and right == False:
                 continue
@@ -187,32 +187,30 @@ def addressways(waylist, nodelist, first_id):
             if right:
                 interpolationtype = interpolation_type(rfromadd, rtoadd, lfromadd, ltoadd)
 
-                if interpolationtype is not None:
-                    csv_lines.append({
-                        'from': int(rfromadd),
-                        'to': int(rtoadd),
-                        'interpolation': interpolationtype,
-                        'street': name,
-                        'city': county,
-                        'state': state,
-                        'postcode': zipr,
-                        'geometry': create_wkt_linestring(rsegment)
-                    })
+                csv_lines.append({
+                    'from': int(rfromadd),
+                    'to': int(rtoadd),
+                    'interpolation': interpolationtype,
+                    'street': name,
+                    'city': county,
+                    'state': state,
+                    'postcode': zipr,
+                    'geometry': create_wkt_linestring(rsegment)
+                })
 
             if left:
                 interpolationtype = interpolation_type(lfromadd, ltoadd, rfromadd, rtoadd)
 
-                if interpolationtype is not None:
-                    csv_lines.append({
-                        'from': int(lfromadd),
-                        'to': int(ltoadd),
-                        'interpolation': interpolationtype,
-                        'street': name,
-                        'city': county,
-                        'state': state,
-                        'postcode': zipl,
-                        'geometry': create_wkt_linestring(lsegment)
-                    })
+                csv_lines.append({
+                    'from': int(lfromadd),
+                    'to': int(ltoadd),
+                    'interpolation': interpolationtype,
+                    'street': name,
+                    'city': county,
+                    'state': state,
+                    'postcode': zipl,
+                    'geometry': create_wkt_linestring(lsegment)
+                })
 
     return csv_lines
 
