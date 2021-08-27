@@ -26,5 +26,5 @@ jobs:
       - name: Create output
         run: |
           mkdir output
-          ./convert.sh tests/fixtures/ output/
+          ./tiger_address_convert.py tests/fixtures/tl_2020_37143_edges/tl_2020_37143_edges.shp output/37143.csv
           diff output/37143.csv tests/fixtures/expected_37143.csv
