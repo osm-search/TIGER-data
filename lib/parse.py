@@ -4,18 +4,23 @@ Parse ESRI Shapefile and extract geometries and tags (key-value pairs)
 
 import os.path
 import json
+import re
 
 try:
     from osgeo import ogr
-except:
+except ImportError:
     import ogr
 
 # https://www.census.gov/geo/reference/codes/cou.html
 # tiger_county_fips.json was generated from the following:
 # wget https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
-# cat national_county.txt | perl -F, -naE'($F[0] ne 'AS') && $F[3] =~ s/ ((city|City|County|District|Borough|City and Borough|Municipio|Municipality|Parish|Island|Census Area)(?:, |\Z))+//; say qq(  "$F[1]$F[2]": "$F[3], $F[0]",)'
-json_fh = open(os.path.dirname(__file__) + "/../tiger_county_fips.json")
-county_fips_data = json.load(json_fh)
+# cat national_county.txt | \
+# perl -F, -naE'($F[0] ne 'AS') && $F[3] =~ s/ ((city|City|County|District|Borough|City and Borough|
+# Municipio|Municipality|Parish|Island|Census Area)(?:, |\Z))+//;
+# say qq(  "$F[1]$F[2]": "$F[3], $F[0]",)'
+
+with open(os.path.dirname(__file__) + "/../tiger_county_fips.json", encoding="utf8") as json_file:
+    county_fips_data = json.load(json_file)
 
 def parse_shp_for_geom_and_tags(filename):
     # ogr.RegisterAll()
@@ -67,9 +72,11 @@ def get_tags_from_feature(po_feature):
     statefp = po_feature.GetField("STATEFP")
     countyfp = po_feature.GetField("COUNTYFP")
     if (statefp is not None) and (countyfp is not None):
-        county_name = county_fips_data.get(statefp + '' + countyfp)
-        if county_name:
-            tags["tiger:county"] = county_name
+        county_and_state = county_fips_data.get(statefp + '' + countyfp)
+        if county_and_state: # e.g. 'Perquimans, NC'
+            result = re.match('^(.+), ([A-Z][A-Z])', county_and_state)
+            tags["tiger:county"] = result[1]
+            tags["tiger:state"] = result[2]
 
     lfromadd = po_feature.GetField("LFROMADD")
     if lfromadd is not None:

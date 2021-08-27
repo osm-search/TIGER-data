@@ -11,13 +11,12 @@ BUGS:
 """
 
 import sys
-import re
 import csv
 import math
 
 from lib.parse import parse_shp_for_geom_and_tags
 from lib.project import unproject
-from lib.helpers import round_point, glom_all, length, interpolation_type, create_wkt_linestring
+from lib.helpers import round_point, glom_all, length, check_if_integers, interpolation_type, create_wkt_linestring
 
 
 # Sets the distance that the address ways should be from the main way, in feet.
@@ -32,18 +31,18 @@ ADDRESS_PULLBACK = 45
 
 
 
-def addressways(waylist, nodelist, first_id):
-    id = first_id
+def addressways(waylist, nodelist, first_way_id):
+    way_id = first_way_id
     lat_feet = 364613  #The approximate number of feet in one degree of latitude
     distance = float(ADDRESS_DISTANCE)
     csv_lines = []
 
-    for waykey, segments in waylist.items():
-        waykey = dict(waykey)
+    for tags, segments in waylist.items():
+        tags = dict(tags)
         for segment in segments:
             lsegment = []
             rsegment = []
-            lastpoint = None
+            lastpoint = []
 
             # Don't pull back the ends of very short ways too much
             seglength = length(segment, nodelist)
@@ -51,27 +50,16 @@ def addressways(waylist, nodelist, first_id):
                 pullback = seglength / 3.0
             else:
                 pullback = float(ADDRESS_PULLBACK)
-            if "tiger:lfromadd" in waykey:
-                lfromadd = waykey["tiger:lfromadd"]
-            else:
-                lfromadd = None
-            if "tiger:ltoadd" in waykey:
-                ltoadd = waykey["tiger:ltoadd"]
-            else:
-                ltoadd = None
-            if "tiger:rfromadd" in waykey:
-                rfromadd = waykey["tiger:rfromadd"]
-            else:
-                rfromadd = None
-            if "tiger:rtoadd" in waykey:
-                rtoadd = waykey["tiger:rtoadd"]
-            else:
-                rtoadd = None
 
-            right = rfromadd is not None and rtoadd is not None
-            left = lfromadd is not None and ltoadd is not None
+            lfromadd = tags.get("tiger:lfromadd")
+            ltoadd = tags.get("tiger:ltoadd")
+            rfromadd = tags.get("tiger:rfromadd")
+            rtoadd = tags.get("tiger:rtoadd")
 
-            if left == False and right == False:
+            right = check_if_integers([rfromadd, rtoadd])
+            left = check_if_integers([lfromadd, ltoadd])
+
+            if not left and not right:
                 continue
 
             first = True
@@ -81,21 +69,21 @@ def addressways(waylist, nodelist, first_id):
             for point in segment:
                 pointid, (lat, lon) = nodelist[ round_point( point ) ]
 
-                #The approximate number of feet in one degree of longitude
+                # The approximate number of feet in one degree of longitude
                 lrad = math.radians(lat)
                 lon_feet = 365527.822 * math.cos(lrad) - 306.75853 * math.cos(3 * lrad) + 0.3937 * math.cos(5 * lrad)
 
-                #Calculate the points of the offset ways
-                if lastpoint is not None:
-                    #Skip points too close to start
+                # Calculate the points of the offset ways
+                if lastpoint:
+                    # Skip points too close to start
                     if math.sqrt((lat * lat_feet - firstpoint[0] * lat_feet)**2 + (lon * lon_feet - firstpoint[1] * lon_feet)**2) < pullback:
                         #Preserve very short ways (but will be rendered backwards)
                         if pointid != finalpointid:
                             continue
-                    #Skip points too close to end
+                    # Skip points too close to end
                     if math.sqrt((lat * lat_feet - finalpoint[0] * lat_feet)**2 + (lon * lon_feet - finalpoint[1] * lon_feet)**2) < pullback:
-                        #Preserve very short ways (but will be rendered backwards)
-                        if (pointid != firstpointid) and (pointid != finalpointid):
+                        # Preserve very short ways (but will be rendered backwards)
+                        if pointid not in (firstpointid, finalpointid):
                             continue
 
                     X = (lon - lastpoint[1]) * lon_feet
@@ -122,12 +110,12 @@ def addressways(waylist, nodelist, first_id):
                         dY = (Xp * (pullback / distance)) / lat_feet
                         if left:
                             lpoint = (lastpoint[0] + (Yp / lat_feet) - dY, lastpoint[1] + (Xp / lon_feet) - dX)
-                            lsegment.append( (id, lpoint) )
-                            id += 1
+                            lsegment.append( (way_id, lpoint) )
+                            way_id += 1
                         if right:
                             rpoint = (lastpoint[0] - (Yp / lat_feet) - dY, lastpoint[1] - (Xp / lon_feet) - dX)
-                            rsegment.append( (id, rpoint) )
-                            id += 1
+                            rsegment.append( (way_id, rpoint) )
+                            way_id += 1
 
                     else:
                         #round the curves
@@ -141,13 +129,13 @@ def addressways(waylist, nodelist, first_id):
                         r = 1 + abs(math.tan(theta/2))
                         if left:
                             lpoint = (lastpoint[0] + (Yp + delta[0]) * r / (lat_feet * 2), lastpoint[1] + (Xp + delta[1]) * r / (lon_feet * 2))
-                            lsegment.append( (id, lpoint) )
-                            id += 1
+                            lsegment.append( (way_id, lpoint) )
+                            way_id += 1
                         if right:
                             rpoint = (lastpoint[0] - (Yp + delta[0]) * r / (lat_feet * 2), lastpoint[1] - (Xp + delta[1]) * r / (lon_feet * 2))
 
-                            rsegment.append( (id, rpoint) )
-                            id += 1
+                            rsegment.append( (way_id, rpoint) )
+                            way_id += 1
 
                     delta = (Yp, Xp)
 
@@ -159,60 +147,48 @@ def addressways(waylist, nodelist, first_id):
             dY = (Xp * (pullback / distance)) / lat_feet
             if left:
                 lpoint = (lastpoint[0] + (Yp + delta[0]) / (lat_feet * 2) + dY, lastpoint[1] + (Xp + delta[1]) / (lon_feet * 2) + dX )
-                lsegment.append( (id, lpoint) )
-                id += 1
+                lsegment.append( (way_id, lpoint) )
+                way_id += 1
             if right:
                 rpoint = (lastpoint[0] - Yp / lat_feet + dY, lastpoint[1] - Xp / lon_feet + dX)
-                rsegment.append( (id, rpoint) )
-                id += 1
+                rsegment.append( (way_id, rpoint) )
+                way_id += 1
 
             # Generate the tags for ways and nodes
-            zipr = ''
-            zipl = ''
-            name = ''
-            county = ''
-            state = ''
-            if "tiger:zip_right" in waykey:
-                zipr = waykey["tiger:zip_right"]
-            if "tiger:zip_left" in waykey:
-                zipl = waykey["tiger:zip_left"]
-            if "name" in waykey:
-                name = waykey["name"]
-            if "tiger:county" in waykey:
-                result = re.match('^(.+), ([A-Z][A-Z])', waykey["tiger:county"]) # e.g. 'Perquimans, NC'
-                county = result[1]
-                state = result[2]
+            zipr = tags.get("tiger:zip_right", '')
+            zipl = tags.get("tiger:zip_left", '')
+            name = tags.get("name", '')
+            county = tags.get("tiger:county", '')
+            state = tags.get("tiger:state", '')
 
             # Write the nodes of the offset ways
             if right:
                 interpolationtype = interpolation_type(rfromadd, rtoadd, lfromadd, ltoadd)
 
-                if interpolationtype is not None:
-                    csv_lines.append({
-                        'from': int(rfromadd),
-                        'to': int(rtoadd),
-                        'interpolation': interpolationtype,
-                        'street': name,
-                        'city': county,
-                        'state': state,
-                        'postcode': zipr,
-                        'geometry': create_wkt_linestring(rsegment)
-                    })
+                csv_lines.append({
+                    'from': rfromadd,
+                    'to': rtoadd,
+                    'interpolation': interpolationtype,
+                    'street': name,
+                    'city': county,
+                    'state': state,
+                    'postcode': zipr,
+                    'geometry': create_wkt_linestring(rsegment)
+                })
 
             if left:
                 interpolationtype = interpolation_type(lfromadd, ltoadd, rfromadd, rtoadd)
 
-                if interpolationtype is not None:
-                    csv_lines.append({
-                        'from': int(lfromadd),
-                        'to': int(ltoadd),
-                        'interpolation': interpolationtype,
-                        'street': name,
-                        'city': county,
-                        'state': state,
-                        'postcode': zipl,
-                        'geometry': create_wkt_linestring(lsegment)
-                    })
+                csv_lines.append({
+                    'from': lfromadd,
+                    'to': ltoadd,
+                    'interpolation': interpolationtype,
+                    'street': name,
+                    'city': county,
+                    'state': state,
+                    'postcode': zipl,
+                    'geometry': create_wkt_linestring(lsegment)
+                })
 
     return csv_lines
 
@@ -254,7 +230,9 @@ def compile_waylist( parsed_gisdata ):
 
 
 def shape_to_csv( shp_filename, csv_filename ):
-
+    """
+    Main feature: reads a file, writes a file
+    """
     print("parsing shpfile %s" % shp_filename)
     parsed_features = parse_shp_for_geom_and_tags( shp_filename )
 
@@ -269,8 +247,8 @@ def shape_to_csv( shp_filename, csv_filename ):
 
     print("writing %s" % csv_filename)
     fieldnames = ['from', 'to', 'interpolation', 'street', 'city', 'state', 'postcode', 'geometry']
-    with open(csv_filename, 'w') as f:
-        csv_writer = csv.DictWriter(f, delimiter=';', fieldnames=fieldnames)
+    with open(csv_filename, 'w', encoding="utf8") as csv_file:
+        csv_writer = csv.DictWriter(csv_file, delimiter=';', fieldnames=fieldnames)
         csv_writer.writeheader()
         csv_writer.writerows(csv_lines)
 

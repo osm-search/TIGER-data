@@ -1,15 +1,16 @@
 import math
 
-"""
-Rounds all numbers in a list of coordinates
-"""
 def round_point( point, accuracy=8 ):
-    return tuple( [ round(x,accuracy) for x in point ] )
+    """
+    Rounds all numbers in a list of coordinates
+    """
+    return (round(point[0], accuracy), round(point[1], accuracy))
 
-"""
-Returns true if two segments are connected at their beginnings or ends
-"""
 def adjacent( left, right ):
+    """
+    Returns true if two segments are connected at their beginnings or ends
+    """
+
     left_left = round_point(left[0])
     left_right = round_point(left[-1])
     right_left = round_point(right[0])
@@ -20,11 +21,12 @@ def adjacent( left, right ):
              left_right == right_left or
              left_right == right_right )
 
-"""
-Returns the combination of two segments. Might reverse one or the other
-to match the adjacent point of both.
-"""
 def glom( left, right ):
+    """
+    Returns the combination of two segments. Might reverse one or the other
+    to match the adjacent point of both.
+    """
+
     left = list( left )
     right = list( right )
 
@@ -49,13 +51,13 @@ def glom( left, right ):
 
     raise 'segments are not adjacent'
 
-"""
-Takes a list of segments, looks at the last and tries to find an adjacent
-segment in the remaining. If found combines them.
-Returns a list of (now combined) segments and a list of still uncombined
-segments.
-"""
 def glom_once( segments ):
+    """
+    Takes a list of segments, looks at the last and tries to find an adjacent
+    segment in the remaining. If found combines them.
+    Returns a list of (now combined) segments and a list of still uncombined
+    segments.
+    """
     if len(segments)==0:
         return segments
 
@@ -78,11 +80,11 @@ def glom_once( segments ):
 
     return x, unsorted
 
-"""
-Takes a list of segments and combines as many as possible together. Returns
-a list of (now combined) segments.
-"""
 def glom_all( segments ):
+    """
+    Takes a list of segments and combines as many as possible together. Returns
+    a list of (now combined) segments.
+    """
     unsorted = segments
     chunks = []
 
@@ -97,13 +99,13 @@ def length(segment, nodelist):
     '''Returns the length (in feet) of a segment'''
     first = True
     distance = 0
-    lat_feet = 364613  #The approximate number of feet in one degree of latitude
+    lat_feet = 364613  # The approximate number of feet in one degree of latitude
     for point in segment:
         _pointid, (lat, lon) = nodelist[ round_point( point ) ]
         if first:
             first = False
         else:
-            #The approximate number of feet in one degree of longitute
+            # The approximate number of feet in one degree of longitude
             lrad = math.radians(lat)
             lon_feet = 365527.822 * math.cos(lrad) - 306.75853 * math.cos(3 * lrad) + 0.3937 * math.cos(5 * lrad)
             distance += math.sqrt(((lat - previous[0])*lat_feet)**2 + ((lon - previous[1])*lon_feet)**2)
@@ -112,19 +114,27 @@ def length(segment, nodelist):
 
 
 def check_if_integers(numbers):
+    """
+    Returns true if all members of lists are integers.
+    """
     for number in numbers:
         if not number:
             return False
-        try: int(number)
-        except:
+        try:
+            int(number)
+        except ValueError:
             print("Non integer address: %s" % number)
             return False
 
     return True
 
 def interpolation_type(this_from, this_to, other_from, other_to):
+    """
+    Check road side (e.g. left) and other side (right) if number range is 'even'
+    or 'odd'. If in doubt 'all'.
+    """
     if not check_if_integers([this_from, this_to]):
-        return
+        return None
 
     if check_if_integers([other_from, other_to]):
         if (int(this_from) % 2) == 0 and (int(this_to) % 2) == 0:
@@ -138,6 +148,9 @@ def interpolation_type(this_from, this_to, other_from, other_to):
     return "all"
 
 def create_wkt_linestring(segment):
+    """
+    Create well known text LINESTRING()
+    """
     coord_pairs = []
     for _i, point in segment:
         coord_pairs.append( "%f %f" % (point[1], point[0]) )
