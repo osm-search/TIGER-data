@@ -107,8 +107,13 @@ def length(segment, nodelist):
         else:
             # The approximate number of feet in one degree of longitude
             lrad = math.radians(lat)
-            lon_feet = 365527.822 * math.cos(lrad) - 306.75853 * math.cos(3 * lrad) + 0.3937 * math.cos(5 * lrad)
-            distance += math.sqrt(((lat - previous[0])*lat_feet)**2 + ((lon - previous[1])*lon_feet)**2)
+            lon_feet = 365527.822 * math.cos(lrad) \
+                       - 306.75853 * math.cos(3 * lrad) \
+                       + 0.3937 * math.cos(5 * lrad)
+            distance += math.sqrt(
+                            ((lat - previous[0])*lat_feet)**2 \
+                            + ((lon - previous[1])*lon_feet)**2
+                        )
         previous = (lat, lon)
     return distance
 
