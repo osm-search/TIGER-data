@@ -16,10 +16,10 @@ Replace '2020' with the current year throughout.
         sudo apt-get install python3-gdal python3-pip unzip
         pip3 install -r requirements.txt
 
-  2. Get the TIGER 2020 data. You will need the EDGES files
+  2. Get the TIGER 2021 data. You will need the EDGES files
      (3,234 zip files, 11GB total).
 
-         wget -r ftp://ftp2.census.gov/geo/tiger/TIGER2020/EDGES/
+         wget -r ftp://ftp2.census.gov/geo/tiger/TIGER2021/EDGES/
 
   3. Convert the data into CSV files. Adjust the file paths in the scripts as needed
 
@@ -27,7 +27,7 @@ Replace '2020' with the current year throughout.
 
   4. Maybe: package the created files
   
-        tar -czf tiger2020-nominatim-preprocessed.tar.gz tiger
+        tar -czf tiger2021-nominatim-preprocessed.tar.gz tiger
 
 
 License
