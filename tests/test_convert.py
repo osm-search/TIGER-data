@@ -1,5 +1,3 @@
-import pytest
-
 from lib.convert import compile_nodelist, compile_waylist, addressways
 
 parsed_gisdata = [
@@ -41,7 +39,7 @@ def test_compile_waylist():
     }
 
 def test_addressways():
-    for geom, tags in parsed_gisdata:
+    for _geom, tags in parsed_gisdata:
         tags["tiger:lfromadd"] = 100
         tags["tiger:ltoadd"] = 200
         tags["tiger:rfromadd"] = 101

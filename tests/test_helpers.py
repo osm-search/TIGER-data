@@ -1,6 +1,5 @@
-import pytest
-
-from lib.helpers import round_point, adjacent, glom, check_if_integers, interpolation_type, create_wkt_linestring
+from lib.helpers import round_point, adjacent, glom, check_if_integers, \
+                        interpolation_type, create_wkt_linestring
 
 def test_round_point():
     assert round_point([1.0, 1.0]) == (1.0, 1.0)
@@ -41,4 +40,5 @@ def test_create_wkt_linestring():
         (1, (100, 200)),
         (2, (101, 201))
     ]
-    assert(create_wkt_linestring(segment)) == 'LINESTRING(200.000000 100.000000,201.000000 101.000000)'
+    assert(create_wkt_linestring(segment)) == \
+        'LINESTRING(200.000000 100.000000,201.000000 101.000000)'

@@ -1,5 +1,3 @@
-import pytest
-
 from lib.parse import parse_shp_for_geom_and_tags
 
 def test_parse_shp_for_geom_and_tags():
