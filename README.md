@@ -8,7 +8,7 @@ tables are separate from OpenStreetMap tables and get queried at search time sep
 The dataset gets updated once per year. Downloading is prone to be slow (can take a full day) and converting
 them can take hours as well. There's a mirror on https://downloads.opencagedata.com/public/
 
-Replace '2020' with the current year throughout.
+Replace '2021' with the current year throughout.
 
   1. Install the GDAL library and python bindings and the unzip tool
 

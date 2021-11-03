@@ -1,5 +1,3 @@
-import pytest
-
 from csv import DictReader
 from lib.csv2sql import csv_row_to_sql
 

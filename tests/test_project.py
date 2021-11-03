@@ -1,5 +1,3 @@
-import pytest
-
 from lib.project import unproject
 
 def test_unproject():

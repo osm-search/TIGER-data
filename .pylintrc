@@ -2,6 +2,10 @@
 
 extension-pkg-whitelist=math
 
+[BASIC]
+
+no-docstring-rgx=^test_
+
 [MESSAGES CONTROL]
 
 [TYPECHECK]
