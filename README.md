@@ -5,6 +5,7 @@ Convert [TIGER](https://www.census.gov/geographies/mapping-files/time-series/geo
 dataset of the US Census Bureau to CSV files which can be imported by Nominatim. In Nominatim the created
 tables are separate from OpenStreetMap tables and get queried at search time separately.
 
+
 The dataset gets updated once per year. Downloading is prone to be slow (can take a full day) and converting
 them can take hours as well. There's a mirror on https://downloads.opencagedata.com/public/
 
@@ -28,6 +29,13 @@ Replace '2021' with the current year throughout.
   4. Maybe: package the created files
   
         tar -czf tiger2021-nominatim-preprocessed.tar.gz tiger
+
+
+US Postocodes
+-------------
+Addtionally create a `us_postcodes.csv.gz` file with centroid coordinates.
+
+    cat output-path/*.csv | ./calculate_postcode_centroids.py | gzip -9 > us_postcodes.csv.gz
 
 
 License
