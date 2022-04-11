@@ -16,15 +16,26 @@ postcode,lat,lon
 00586;18.343681;-67.028427
 00601;18.181632;-66.757545
 """
-
+from collections import defaultdict
+from statistics import mean, median
+from math import sqrt
 import sys
 import csv
 import re
+import logging
 
-postcode_summary = {}
+LOG = logging.getLogger()
+
+postcode_summary = defaultdict(list)
 
 reader = csv.DictReader(sys.stdin, delimiter=';')
 
+def dist(p1, p2):
+    return sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2)
+
+LOG.warning("Reading Postcodes")
+
+cnt = 0
 for row in reader:
 
     postcode = row['postcode']
@@ -32,14 +43,6 @@ for row in reader:
     # In rare cases the postcode might be empty
     if not re.match(r'^\d\d\d\d\d$', postcode):
         continue
-
-    if postcode not in postcode_summary:
-        postcode_summary[postcode] = {
-            'coord_count': 0,
-            'lat_sum': 0,
-            'lon_sum': 0
-        }
-
 
     # If you 'cat *.csv' then you might end up with multiple CSV header lines.
     # Skip those
@@ -52,20 +55,43 @@ for row in reader:
     # our scripts that created them.
     assert result
 
-    for coord_pair in result[1].split(','):
-        [lon, lat] = coord_pair.split(' ')
+    points = result[1].split(',')
+    postcode_summary[postcode].append([float(p) for p in points[int(len(points)/2)].split(' ')])
 
-        postcode_summary[postcode]['coord_count'] += 1
-        postcode_summary[postcode]['lat_sum'] += float(lat)
-        postcode_summary[postcode]['lon_sum'] += float(lon)
+    cnt += 1
+
+    if cnt % 1000000 == 0:
+        LOG.warning("Processed %s lines.", cnt)
+
+LOG.warning("%s lines read.", cnt)
 
 writer = csv.DictWriter(sys.stdout, delimiter=';', fieldnames=['postcode', 'lat', 'lon'])
 writer.writeheader()
 
+maxdists = [0.1, 0.3, 0.5, 0.9]
+
 for postcode in sorted(postcode_summary):
-    summary = postcode_summary[postcode]
-    writer.writerow({
-        'postcode': postcode,
-        'lat': round(summary['lat_sum'] / summary['coord_count'], 6),
-        'lon': round(summary['lon_sum'] / summary['coord_count'], 6)
-    })
+    points = postcode_summary[postcode]
+
+    centroid = [median(p) for p in zip(*points)]
+
+    for mxd in maxdists:
+        filtered = [p for p in points if dist(centroid, p) < mxd]
+
+        if len(filtered) < 0.7 * len(points):
+            continue
+
+        if len(filtered) < len(points):
+            LOG.warning("%s: Found %d outliers in %d points.", postcode, - len(filtered) + len(points), len(points))
+            points = filtered
+
+        centroid = [mean(p) for p in zip(*points)]
+
+        writer.writerow({
+            'postcode': postcode,
+            'lat': round(centroid[1], 6),
+            'lon': round(centroid[0], 6)
+        })
+        break
+    else:
+        LOG.warning("%s: Dropped.", postcode)
