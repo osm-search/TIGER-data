@@ -65,7 +65,9 @@ for row in reader:
 
 LOG.warning("%s lines read.", cnt)
 
-writer = csv.DictWriter(sys.stdout, delimiter=';', fieldnames=['postcode', 'lat', 'lon'])
+writer = csv.DictWriter(sys.stdout, delimiter=',',
+                        fieldnames=['postcode', 'lat', 'lon'],
+                        lineterminator='\n')
 writer.writeheader()
 
 maxdists = [0.1, 0.3, 0.5, 0.9]
