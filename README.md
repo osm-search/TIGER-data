@@ -31,7 +31,7 @@ Replace '2021' with the current year throughout.
         tar -czf tiger2022-nominatim-preprocessed.csv.tar.gz tiger
 
 
-US Postocodes
+US Postcodes
 -------------
 Addtionally create a `us_postcodes.csv.gz` file with centroid coordinates.
 
