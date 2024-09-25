@@ -6,24 +6,27 @@ jobs:
   compare-output:
 
     name: Compare output
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    runs-on: ubuntu-24.04
 
-      - uses: actions/setup-python@v3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: 3.12
       
       - name: Install Ubuntu dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends python3-gdal python3-pip python3-pytest unzip
+          sudo apt-get install -y -qq --no-install-recommends libgdal-dev unzip
 
       - name: Install Python dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
 
       - name: Run tests
-        run: pytest-3
+        run: pytest
 
       - name: Create output
         run: |
