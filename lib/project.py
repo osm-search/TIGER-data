@@ -2,10 +2,9 @@
 Deal with coordinate system transformations/projections
 """
 
-try:
-    from osgeo import osr
-except ImportError:
-    import osr
+from osgeo import osr
+
+osr.DontUseExceptions()
 
 # Same as the contents of the *_edges.prj files
 PROJCS_WKT = \
@@ -27,4 +26,4 @@ transformer = osr.CoordinateTransformation(from_proj, to_proj)
 def unproject(point):
     """Covert point to WGS84"""
     projected = transformer.TransformPoint(point[0], point[1])
-    return (projected[0], projected[1])
+    return (round(projected[0], 6), round(projected[1], 6))
