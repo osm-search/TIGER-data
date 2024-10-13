@@ -15,6 +15,7 @@ import csv
 
 from lib.parse import parse_shp_for_geom_and_tags
 from lib.convert import addressways, compile_nodelist, compile_waylist
+from lib.validate import validate_one_line
 
 def shape_to_csv(shp_filename, csv_filename):
     """
@@ -46,7 +47,9 @@ def shape_to_csv(shp_filename, csv_filename):
     with open(csv_filename, 'w', encoding="utf8") as csv_file:
         csv_writer = csv.DictWriter(csv_file, delimiter=';', fieldnames=fieldnames)
         csv_writer.writeheader()
-        csv_writer.writerows(csv_lines)
+        for csv_line in csv_lines:
+            if validate_one_line(csv_line):
+                csv_writer.writerow(csv_line)
 
 if len(sys.argv) < 3:
     print("%s input.shp output.csv" % sys.argv[0])

@@ -22,7 +22,7 @@ Replace '2024' with the current year throughout.
         pip install -r requirements.txt
         ```
 
-  2. Get the TIGER 2034 data. You will need the EDGES files
+  2. Get the TIGER 2024 data. You will need the EDGES files
      (3,235 zip files, 11GB total).
 
          wget -r ftp://ftp2.census.gov/geo/tiger/TIGER2024/EDGES
