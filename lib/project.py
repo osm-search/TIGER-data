@@ -4,7 +4,7 @@ Deal with coordinate system transformations/projections
 
 try:
     from osgeo import osr
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     import osr
 
 osr.DontUseExceptions()
