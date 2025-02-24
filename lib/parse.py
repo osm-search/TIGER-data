@@ -7,9 +7,9 @@ import json
 import re
 
 try:
-    from osgeo import osr
+    from osgeo import ogr
 except ImportError:
-    import osr
+    import ogr
 
 # https://www.census.gov/geo/reference/codes/cou.html
 # tiger_county_fips.json was generated from the following:
