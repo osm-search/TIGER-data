@@ -17,14 +17,10 @@ jobs:
       - name: Install Ubuntu dependencies
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends python3-gdal python3-pip unzip
-
-      - name: Install Python dependencies
-        run: |
-          pip install pytest
+          sudo apt-get install -y -qq --no-install-recommends python3-gdal python3-pip python3-pytest unzip
 
       - name: Run tests
-        run: pytest
+        run: pytest-3
 
       - name: Create output
         run: |
