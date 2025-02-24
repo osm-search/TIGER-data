@@ -8,7 +8,7 @@ import re
 
 try:
     from osgeo import ogr
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     import ogr
 
 # https://www.census.gov/geo/reference/codes/cou.html
