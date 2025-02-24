@@ -35,14 +35,14 @@ Replace '2024' with the current year throughout.
   3. Convert the data into CSV files. Adjust the file paths in the scripts as needed
 
          ```bash
-        ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
-        cd output-path
-        ./patch.sh
+         ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
+         cd output-path
+         ./patch.sh
          ```
 
   4. Maybe: package the created files
   
-         ```bash
+        ```bash
         tar -czf tiger2024-nominatim-preprocessed.csv.tar.gz *.csv
          ```
 

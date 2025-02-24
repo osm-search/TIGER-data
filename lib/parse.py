@@ -6,7 +6,10 @@ import os.path
 import json
 import re
 
-from osgeo import ogr
+try:
+    from osgeo import osr
+except ImportError:
+    import osr
 
 # https://www.census.gov/geo/reference/codes/cou.html
 # tiger_county_fips.json was generated from the following:

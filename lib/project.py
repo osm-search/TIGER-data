@@ -2,7 +2,10 @@
 Deal with coordinate system transformations/projections
 """
 
-from osgeo import osr
+try:
+    from osgeo import osr
+except ImportError:
+    import osr
 
 osr.DontUseExceptions()
 
