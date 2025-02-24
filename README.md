@@ -15,11 +15,7 @@ Replace '2024' with the current year throughout.
 
         ```bash
         # Ubuntu:
-        sudo apt-get install python3
-
-        python3 -m venv venv-tiger
-        . venv-tiger/bin/activate
-        pip install -r requirements.txt
+        sudo apt-get install python3-gdal python3-pip unzip
         ```
 
   2. Get the TIGER 2024 data. You will need the EDGES files
@@ -39,7 +35,7 @@ Replace '2024' with the current year throughout.
   3. Convert the data into CSV files. Adjust the file paths in the scripts as needed
 
          ```bash
-        ./convert.sh <input-path> <output-path>
+        ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
         cd output-path
         ./patch.sh
          ```
