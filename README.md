@@ -9,7 +9,7 @@ tables are separate from OpenStreetMap tables and get queried at search time sep
 The dataset gets updated once per year. Downloading is prone to be slow (can take a full day) and converting
 them can take hours as well. There's a mirror on https://downloads.opencagedata.com/public/
 
-Replace '2024' with the current year throughout.
+Replace '2025' with the current year throughout.
 
   1. Install the GDAL library and python bindings and the unzip tool
 
@@ -18,33 +18,33 @@ Replace '2024' with the current year throughout.
         sudo apt-get install python3-gdal python3-pip unzip
         ```
 
-  2. Get the TIGER 2024 data. You will need the EDGES files
+  2. Get the TIGER 2025 data. You will need the EDGES files
      (3,235 zip files, 11GB total).
 
-         wget -r ftp://ftp2.census.gov/geo/tiger/TIGER2024/EDGES/
+         wget -r ftp://ftp2.census.gov/geo/tiger/TIGER2025/EDGES/
 
 
      Alternatively
 
-         ```bash
-         curl 'https://www2.census.gov/geo/tiger/TIGER2024/EDGES/' | grep -o 'tl_[^"]*.zip' | sort -u > filelist.txt
-         # 3235 filelist.txt
-         cat filelist.txt | sed -e 's!^!https://www2.census.gov/geo/tiger/TIGER2024/EDGES/!' | xargs -n 1 wget
-         ```
+        ```bash
+        curl 'https://www2.census.gov/geo/tiger/TIGER2025/EDGES/' | grep -o 'tl_[^"]*.zip' | sort -u > filelist.txt
+        # 3235 filelist.txt
+        cat filelist.txt | sed -e 's!^!https://www2.census.gov/geo/tiger/TIGER2025/EDGES/!' | xargs -n 1 wget
+        ```
 
   3. Convert the data into CSV files. Adjust the file paths in the scripts as needed
 
-         ```bash
-         ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
-         cd output-path
-         ./patch.sh
-         ```
+        ```bash
+        ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
+        cd output-path
+        ../patch.sh
+        ```
 
   4. Maybe: package the created files
   
         ```bash
-        tar -czf tiger2024-nominatim-preprocessed.csv.tar.gz *.csv
-         ```
+        tar -czf tiger2025-nominatim-preprocessed.csv.tar.gz *.csv
+        ```
 
 
 US Postcodes
