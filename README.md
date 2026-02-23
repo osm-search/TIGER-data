@@ -26,25 +26,25 @@ Replace '2025' with the current year throughout.
 
      Alternatively
 
-         ```bash
-         curl 'https://www2.census.gov/geo/tiger/TIGER2025/EDGES/' | grep -o 'tl_[^"]*.zip' | sort -u > filelist.txt
-         # 3235 filelist.txt
-         cat filelist.txt | sed -e 's!^!https://www2.census.gov/geo/tiger/TIGER2025/EDGES/!' | xargs -n 1 wget
-         ```
+        ```bash
+        curl 'https://www2.census.gov/geo/tiger/TIGER2025/EDGES/' | grep -o 'tl_[^"]*.zip' | sort -u > filelist.txt
+        # 3235 filelist.txt
+        cat filelist.txt | sed -e 's!^!https://www2.census.gov/geo/tiger/TIGER2025/EDGES/!' | xargs -n 1 wget
+        ```
 
   3. Convert the data into CSV files. Adjust the file paths in the scripts as needed
 
-         ```bash
-         ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
-         cd output-path
-         ./patch.sh
-         ```
+        ```bash
+        ./convert.sh <input-path> <output-path> 2>&1 | tee convert.$$.log
+        cd output-path
+        ./patch.sh
+        ```
 
   4. Maybe: package the created files
   
         ```bash
         tar -czf tiger2025-nominatim-preprocessed.csv.tar.gz *.csv
-         ```
+        ```
 
 
 US Postcodes
