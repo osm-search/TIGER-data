@@ -47,6 +47,38 @@ Replace '2025' with the current year throughout.
         ```
 
 
+Subset for a partial import
+---------------------------
+If you only need a smaller geographic extract you can use `tiger_create_extract.py` to cut down
+the data. By state, FIPS code or bounding box.
+
+The script only needs Python 3. It uses nothing outside the standard library, so GDAL and the
+other packages from step 1 are not required.
+
+The input is the packaged `.tar.gz` archive (from step 4 or the mirror) or a directory of county
+CSV files (the output of step 3). The output is a directory of county CSV files, which Nominatim
+accepts in place of the archive:
+
+```bash
+# a single state, by abbreviation
+./tiger_create_extract.py --states NY tiger.csv.tar.gz out/
+
+# two states by FIPS code (36 = NY, 34 = NJ)
+./tiger_create_extract.py --states 36,34 tiger.csv.tar.gz out/
+
+# abbreviations and FIPS codes mix freely
+./tiger_create_extract.py --states NY,34 tiger.csv.tar.gz out/
+
+# bounding box
+./tiger_create_extract.py --bbox=-74.26,40.49,-73.70,40.92 tiger.csv.tar.gz out/
+
+# state and bounding box (faster than just bounding box)
+./tiger_create_extract.py --states NY --bbox=-74.26,40.49,-73.70,40.92 tiger.csv.tar.gz out/
+
+# import into Nominatim
+nominatim add-data --tiger-data out/
+```
+
 US Postcodes
 -------------
 Addtionally create a `us_postcodes.csv.gz` file with centroid coordinates.
