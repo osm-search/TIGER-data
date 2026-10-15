@@ -96,7 +96,9 @@ def main(argv):
             f"{name}: "
             f"added {stats.added} ({added_pct:.2f}%), "
             f"deleted {stats.deleted} ({deleted_pct:.2f}%), "
-            f"changed {stats.changed} ({changed_pct:.2f}%)"
+            f"changed {stats.changed} ({changed_pct:.2f}%), "
+            f"length {stats.old_length_km:.1f} km -> {stats.new_length_km:.1f} km "
+            f"({stats.length_percentage():+.2f}%)"
         )
 
         summary.totals.added += stats.added
@@ -104,6 +106,8 @@ def main(argv):
         summary.totals.changed += stats.changed
         summary.totals.old_lines += stats.old_lines
         summary.totals.new_lines += stats.new_lines
+        summary.totals.old_length_km += stats.old_length_km
+        summary.totals.new_length_km += stats.new_length_km
 
     totals = summary.totals
     added_pct = totals.percentage(totals.added)
@@ -120,6 +124,10 @@ def main(argv):
     print(f"  Added lines: {totals.added} ({added_pct:.2f}%)")
     print(f"  Deleted lines: {totals.deleted} ({deleted_pct:.2f}%)")
     print(f"  Changed lines: {totals.changed} ({changed_pct:.2f}%)")
+    print(f"  Total length (old): {totals.old_length_km:.1f} km")
+    print(f"  Total length (new): {totals.new_length_km:.1f} km")
+    print(f"  Length change: {totals.new_length_km - totals.old_length_km:+.1f} km "
+          f"({totals.length_percentage():+.2f}%)")
 
     return 0
 
